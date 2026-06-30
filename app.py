@@ -217,13 +217,19 @@ def before_request():
     if "user_id" not in session:
         session["user_id"] = str(uuid.uuid4())
 
-    if request.path == "/login":
+    public_paths = [
+        "/login",
+        "/health",
+        "/favicon.ico",
+        "/apple-touch-icon.png",
+        "/manifest.json",
+        "/service-worker.js"
+    ]
+
+    if request.path in public_paths:
         return
 
     if request.path.startswith("/static/"):
-        return
-
-    if request.path in ["/health"]:
         return
 
     if not APP_PASSWORD:
@@ -231,6 +237,46 @@ def before_request():
 
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return redirect(
+        url_for(
+            "static",
+            filename="icon-512.png"
+        )
+    )
+
+
+@app.route("/apple-touch-icon.png")
+def apple_touch_icon():
+    return redirect(
+        url_for(
+            "static",
+            filename="icon-512.png"
+        )
+    )
+
+
+@app.route("/manifest.json")
+def manifest():
+    return redirect(
+        url_for(
+            "static",
+            filename="manifest.json"
+        )
+    )
+
+
+@app.route("/service-worker.js")
+def service_worker():
+    return redirect(
+        url_for(
+            "static",
+            filename="service-worker.js"
+        )
+    )
 
 
 @app.route("/login", methods=["GET", "POST"])
