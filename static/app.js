@@ -9,7 +9,6 @@ function scrollToBottom() {
 
 
 function createMessage(role, text, isTyping = false) {
-
     const row = document.createElement("div");
     row.className = `message-row ${role}`;
 
@@ -21,9 +20,7 @@ function createMessage(role, text, isTyping = false) {
     }
 
     bubble.textContent = text;
-
     row.appendChild(bubble);
-
     chatArea.appendChild(row);
 
     scrollToBottom();
@@ -33,7 +30,6 @@ function createMessage(role, text, isTyping = false) {
 
 
 async function loadHistory() {
-
     try {
         const res = await fetch("/history");
         const data = await res.json();
@@ -43,10 +39,7 @@ async function loadHistory() {
         }
 
         data.messages.forEach(msg => {
-            createMessage(
-                msg.role,
-                msg.content
-            );
+            createMessage(msg.role, msg.content);
         });
 
         scrollToBottom();
@@ -57,16 +50,43 @@ async function loadHistory() {
 }
 
 
-messageInput.addEventListener("input", () => {
-
+function resizeTextarea() {
     messageInput.style.height = "auto";
     messageInput.style.height = messageInput.scrollHeight + "px";
+}
 
+
+messageInput.addEventListener("input", resizeTextarea);
+
+
+messageInput.addEventListener("focus", () => {
+    setTimeout(() => {
+        messageInput.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+        scrollToBottom();
+    }, 300);
 });
 
 
-chatForm.addEventListener("submit", async (e) => {
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+        document.documentElement.style.height =
+            window.visualViewport.height + "px";
 
+        document.body.style.height =
+            window.visualViewport.height + "px";
+
+        setTimeout(() => {
+            scrollToBottom();
+        }, 100);
+    });
+}
+
+
+chatForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const message = messageInput.value.trim();
@@ -88,7 +108,6 @@ chatForm.addEventListener("submit", async (e) => {
 
     try {
         const delay = 700 + Math.floor(Math.random() * 1200);
-
         await new Promise(resolve => setTimeout(resolve, delay));
 
         const res = await fetch("/chat", {
@@ -106,33 +125,22 @@ chatForm.addEventListener("submit", async (e) => {
         typingRow.remove();
 
         if (data.ok) {
-            createMessage(
-                "assistant",
-                data.reply
-            );
+            createMessage("assistant", data.reply);
         } else {
-            createMessage(
-                "assistant",
-                "今無理。もう一回送れ。"
-            );
+            createMessage("assistant", "今無理。もう一回送れ。");
         }
 
     } catch (err) {
-
         console.error(err);
 
         typingRow.remove();
 
-        createMessage(
-            "assistant",
-            "通信切れてる。"
-        );
+        createMessage("assistant", "通信切れてる。");
     }
 });
 
 
 async function clearChat() {
-
     const ok = confirm("会話履歴を削除する？");
 
     if (!ok) {
